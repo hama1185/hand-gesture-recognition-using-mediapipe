@@ -14,6 +14,7 @@ import mediapipe as mp
 from utils import CvFpsCalc
 from model import KeyPointClassifier
 from model import PointHistoryClassifier
+import socket
 
 
 def get_args():
@@ -98,6 +99,12 @@ def main():
     #  ########################################################################
     mode = 0
 
+
+    # 送信の設定 ######################################################
+    HOST = '127.0.0.1'
+    PORT = 50007
+    client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
     while True:
         fps = cvFpsCalc.get()
 
@@ -157,6 +164,9 @@ def main():
                 finger_gesture_history.append(finger_gesture_id)
                 most_common_fg_id = Counter(
                     finger_gesture_history).most_common()
+
+                # 送信
+                client.sendto(point_history_classifier_labels[most_common_fg_id[0][0]].encode('utf-8'),(HOST, PORT))
 
                 # 描画
                 debug_image = draw_bounding_rect(use_brect, debug_image, brect)
